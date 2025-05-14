@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest # Using Windows environment
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -17,16 +17,29 @@ jobs:
     - name: Set up Haxe
       uses: krdlab/setup-haxe@v1
       with:
-        haxe-version: 'latest' # Or specify a particular Haxe version if needed
+        haxe-version: '4.2.5' # Using a specific stable version
+
+    # Add step to display and set environment variables
+    - name: Set Haxe environment variables
+      run: |
+        echo "Setting HAXEPATH..."
+        where haxe
+        echo "HAXEPATH=%HOMEDRIVE%%HOMEPATH%\haxelib" >> %GITHUB_ENV%
+        echo "HAXE_STD_PATH=%HOMEDRIVE%%HOMEPATH%\haxelib\std" >> %GITHUB_ENV%
+      shell: cmd
 
     - name: Install Haxe Module Manager (hmm)
       run: |
+        echo "Current HAXEPATH: %HAXEPATH%"
         haxelib --global install hmm
         haxelib --global run hmm setup
-      shell: cmd # Ensuring commands run in cmd or powershell
+      shell: cmd
 
     - name: Install project dependencies
-      run: hmm install
+      run: |
+        echo "Current directory:"
+        dir
+        hmm install
       shell: cmd
 
     - name: Install hxvlc (if needed)
@@ -34,7 +47,9 @@ jobs:
       shell: cmd
 
     - name: Set up Lime
-      run: haxelib run lime setup
+      run: |
+        haxelib install lime
+        haxelib run lime setup -y
       shell: cmd
 
     - name: Compile the game for Windows
