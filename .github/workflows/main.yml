@@ -2,56 +2,42 @@ name: Build FPS-Plus
 
 on:
   push:
-    branches: [ master ] # Or your default branch, e.g., main
+    branches: [ master ]
   pull_request:
-    branches: [ master ] # Or your default branch
+    branches: [ master ]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install X11 development libraries
+      run: sudo apt-get update && sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+
     - name: Set up Haxe
       uses: krdlab/setup-haxe@v1
       with:
-        haxe-version: '4.2.5' # Using a specific stable version
-
-    # Add step to display and set environment variables
-    - name: Set Haxe environment variables
-      run: |
-        echo "Setting HAXEPATH..."
-        where haxe
-        echo "HAXEPATH=%HOMEDRIVE%%HOMEPATH%\haxelib" >> %GITHUB_ENV%
-        echo "HAXE_STD_PATH=%HOMEDRIVE%%HOMEPATH%\haxelib\std" >> %GITHUB_ENV%
-      shell: cmd
+        haxe-version: '4.2.5'
 
     - name: Install Haxe Module Manager (hmm)
       run: |
-        echo "Current HAXEPATH: %HAXEPATH%"
         haxelib --global install hmm
         haxelib --global run hmm setup
-      shell: cmd
 
     - name: Install project dependencies
+      run: hmm install
+
+    - name: Install Lime and OpenFL
       run: |
-        echo "Current directory:"
-        dir
-        hmm install
-      shell: cmd
+        haxelib install lime
+        haxelib install openfl
+        haxelib run lime setup -y
 
     - name: Install hxvlc (if needed)
       run: haxelib --global install hxvlc
-      shell: cmd
-
-    - name: Set up Lime
-      run: |
-        haxelib install lime
-        haxelib run lime setup -y
-      shell: cmd
 
     - name: Compile the game for Windows
-      run: lime build windows
-      shell: cmd
+      run: haxelib run lime build windows
