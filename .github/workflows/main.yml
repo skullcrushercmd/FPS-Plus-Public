@@ -8,16 +8,19 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Using Ubuntu as a common CI environment
+    runs-on: debian
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install X11 development libraries
+      run: sudo apt-get update && sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+
     - name: Set up Haxe
       uses: krdlab/setup-haxe@v1
       with:
-        haxe-version: 'latest' # Or specify a particular Haxe version if needed
+        haxe-version: 'latest' 
 
     - name: Install Haxe Module Manager (hmm)
       run: |
