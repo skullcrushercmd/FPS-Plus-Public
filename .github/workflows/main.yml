@@ -1,0 +1,37 @@
+name: Build FPS-Plus
+
+on:
+  push:
+    branches: [ master ] # Or your default branch, e.g., main
+  pull_request:
+    branches: [ master ] # Or your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Using Ubuntu as a common CI environment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Haxe
+      uses: krdlab/setup-haxe@v1
+      with:
+        haxe-version: 'latest' # Or specify a particular Haxe version if needed
+
+    - name: Install Haxe Module Manager (hmm)
+      run: |
+        haxelib --global install hmm
+        haxelib --global run hmm setup
+
+    - name: Install project dependencies
+      run: hmm install
+
+    - name: Install hxvlc (if needed)
+      run: haxelib --global install hxvlc
+
+    - name: Set up Lime
+      run: haxelib run lime setup
+
+    - name: Compile the game for Windows
+      run: lime build windows
