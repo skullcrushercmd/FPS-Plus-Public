@@ -1,4 +1,4 @@
-name: Build Friday Night Funkin FPS Plus
+name: Build Friday Night Funkin FPS Plus (Windows)
 
 on:
   push:
@@ -8,25 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build FNF FPS Plus (${{ matrix.target }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: linux
-            arch: x64
-            name: linux
-          - os: windows-latest
-            target: windows
-            arch: x64
-            name: windows
-          - os: macos-latest
-            target: mac
-            arch: x64
-            name: mac
+  build-windows:
+    name: Build FNF FPS Plus (Windows)
+    runs-on: windows-latest
     
     steps:
       - uses: actions/checkout@v2
@@ -37,23 +21,11 @@ jobs:
         with:
           haxe-version: 4.2.5
       
-      # Install Linux dependencies
-      - name: Install Linux dependencies
-        if: matrix.target == 'linux'
+      # Windows-specific setup (if needed)
+      - name: Setup Windows dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev libopenal-dev libxext-dev libxi-dev libxrandr-dev libxinerama-dev libxcursor-dev libasound2-dev libpulse-dev
-
-      # Install macOS dependencies
-      - name: Install macOS dependencies
-        if: matrix.target == 'mac'
-        run: brew install openal-soft
-
-      # Install Windows dependencies (if needed)
-      # - name: Install Windows dependencies
-      #   if: matrix.target == 'windows'
-      #   run: |
-      #     # Add Windows-specific dependencies here if needed
+          # Visual Studio is pre-installed on the runner
+          # Additional Windows dependencies would go here if needed
 
       - name: Install Haxe dependencies
         run: |
@@ -67,26 +39,18 @@ jobs:
       - name: Setup Lime
         run: |
           haxelib run lime setup -alias -y
-          haxelib run lime config MACOSX_DEPLOYMENT_TARGET 10.13
           haxelib list
 
       - name: Create version file
         if: ${{ github.event_name != 'pull_request' }}
         run: echo "${{github.sha}}" > VERSION
 
-      - name: Build
-        run: haxelib run lime build ${{ matrix.target }} -${{ matrix.arch }} -${{ github.event_name != 'pull_request' && 'final' || 'debug' }}
+      - name: Build Windows
+        run: haxelib run lime build windows -x64 -${{ github.event_name != 'pull_request' && 'final' || 'debug' }}
 
-      - name: Package build
+      - name: Package Windows build
         uses: actions/upload-artifact@v2
         with:
-          name: FNF-FPSPlus-${{ matrix.name }}-$(date '+%Y%m%d-%H%M%S')
-          path: export/${{ matrix.target }}/${{ github.event_name != 'pull_request' && 'final' || 'debug' }}
+          name: FNF-FPSPlus-Windows-${{ github.run_id }}
+          path: export/windows/${{ github.event_name != 'pull_request' && 'final' || 'debug' }}
           if-no-files-found: error
-
-  # Add Android build job if needed
-  # build-android:
-  #   name: Build FNF FPS Plus (Android)
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     # Add Android-specific build steps here if required by FPS Plus
